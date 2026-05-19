@@ -1,0 +1,51 @@
+[project]
+name = "compass"
+version = "0.1.0"
+description = "Compass — Executive oversight for agile federal delivery. By Zvolvant Solutions LLC."
+requires-python = ">=3.12,<3.13"
+readme = "README.md"
+license = { text = "Proprietary" }
+authors = [{ name = "Zvolvant Solutions LLC" }]
+
+dependencies = [
+    "streamlit>=1.39",
+    "pandas>=2.2",
+    "plotly>=5.22",
+    "pydantic>=2.7",
+    "python-dotenv>=1.0",
+    "bcrypt>=4.2",
+    "reportlab>=4.2",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.6",
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/compass"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["E402"]
+# streamlit_app.py inserts src/ into sys.path before importing compass.* so
+# the entrypoint works on Streamlit Cloud and locally without an editable install
+"streamlit_app.py" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["src"]
