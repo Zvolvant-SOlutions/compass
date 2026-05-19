@@ -10,7 +10,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from .. import audit, auth, claude_client, db, stories
+from .. import audit, auth, claude_client, db, spend_cap, stories
 
 
 def _save_as_features(picked: list[stories.UserStory], user) -> int:
@@ -60,6 +60,15 @@ def render() -> None:
         )
         return
 
+    # Show today's budget burn so the team can see how much of the daily cap
+    # has been consumed before they hit "generate" again.
+    snap = spend_cap.usage_today()
+    pct = min(100.0, 100.0 * snap["spend_usd"] / max(snap["cap_usd"], 0.01))
+    st.caption(
+        f"Anthropic budget today: ${snap['spend_usd']:.3f} of ${snap['cap_usd']:.2f} cap  "
+        f"({snap['calls']} generations · {pct:.0f}% used)"
+    )
+
     with st.form("story_builder_form"):
         c1, c2 = st.columns(2)
         description = c1.text_area(
@@ -104,12 +113,19 @@ def render() -> None:
             story_count=story_count,
         )
 
+        ok, reason = spend_cap.can_spend()
+        if not ok:
+            st.error(reason)
+            return
+
         with st.spinner("Generating user stories..."):
             try:
                 generated, cost = stories.generate_stories(ctx)
             except Exception as exc:
                 st.error(f"Story generation failed: {exc}")
                 return
+
+        spend_cap.record_spend(cost)
 
         st.session_state["last_stories"] = [s.to_dict() for s in generated]
         st.session_state["last_stories_context"] = ctx
