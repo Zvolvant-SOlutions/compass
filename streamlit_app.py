@@ -43,6 +43,9 @@ from compass.pages import (
 from compass.pages import (
     settings_page,
 )
+from compass.pages import (
+    story_builder as story_builder_page,
+)
 from compass.state import current_page, init_session, navigate
 
 try:
@@ -68,6 +71,7 @@ def _navbar(user: auth.User | None) -> None:
         ("readiness", "Readiness"),
         ("feature_value", "Features"),
         ("hybrid_acceptance", "Hybrid Acceptance"),
+        ("story_builder", "Story Builder"),
         ("risks", "Risks"),
         ("settings", "Settings"),
         ("audit_log", "Audit"),
@@ -113,6 +117,8 @@ def main() -> None:
         feature_value_page.render()
     elif page == "hybrid_acceptance":
         hybrid_acceptance_page.render()
+    elif page == "story_builder":
+        story_builder_page.render()
     elif page == "risks":
         risks_page.render()
     elif page == "settings":
