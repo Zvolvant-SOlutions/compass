@@ -94,8 +94,10 @@ def main() -> None:
     )
     st.markdown(GLOBAL_CSS, unsafe_allow_html=True)
 
-    # Ensure schema exists on every startup (Streamlit Cloud cold start).
+    # Ensure schema exists on every startup, and first-run seed demo data so
+    # the app is usable immediately after a Streamlit Cloud cold start.
     db.init_db()
+    db.bootstrap_seed_if_empty()
     init_session()
 
     user = auth.current_user()

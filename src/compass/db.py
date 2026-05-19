@@ -193,6 +193,47 @@ def init_db() -> None:
         c.executescript(SCHEMA_SQL)
 
 
+def is_empty() -> bool:
+    """True iff the users table has zero rows — used to gate first-run seeding."""
+    row = fetch_one("SELECT COUNT(*) AS n FROM users")
+    return (row or {"n": 0}).get("n", 0) == 0
+
+
+def bootstrap_seed_if_empty() -> bool:
+    """First-run only: populate demo CLINs / sprints / features / users.
+
+    Returns True if seeding ran (DB was empty), False otherwise. Safe to call
+    on every startup; the empty check makes it a no-op after the first run.
+    """
+    if not is_empty():
+        return False
+    # Lazy import to avoid a cycle with auth -> db at module load time.
+    import sys
+    from pathlib import Path
+
+    scripts_dir = Path(__file__).resolve().parents[2] / "scripts"
+    if str(scripts_dir) not in sys.path:
+        sys.path.insert(0, str(scripts_dir))
+    from seed_db import (
+        seed_clins_workstreams_systems,
+        seed_customer_value,
+        seed_features,
+        seed_risks,
+        seed_settings,
+        seed_sprints,
+        seed_users,
+    )
+
+    seed_settings()
+    seed_users()
+    clin_ids = seed_clins_workstreams_systems()
+    seed_sprints(clin_ids)
+    seed_customer_value(clin_ids)
+    seed_features(clin_ids)
+    seed_risks(clin_ids)
+    return True
+
+
 def rows_to_dicts(rows: list[sqlite3.Row]) -> list[dict[str, Any]]:
     return [dict(r) for r in rows]
 
