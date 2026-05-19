@@ -49,12 +49,37 @@ def seed_settings() -> None:
         )
 
 
+def _resolve_secret(name: str, default: str) -> str:
+    """Resolve a password from env first, then Streamlit secrets, then default.
+
+    Lets the deployment override seeded passwords without editing the repo.
+    """
+    val = os.getenv(name, "").strip()
+    if val:
+        return val
+    try:
+        import streamlit as st  # type: ignore
+
+        if name in st.secrets:
+            return str(st.secrets[name]).strip()
+    except Exception:
+        pass
+    return default
+
+
 def seed_users() -> None:
+    # Default to "compass-demo" only if no per-role override is set. In
+    # production, the deploy should set COMPASS_*_PASSWORD secrets so the
+    # default — visible in the public repo — never works.
     users = [
-        ("cor@example.gov", "COR Reviewer", "COR", "compass-demo"),
-        ("pm@example.gov", "Program Manager", "PM", "compass-demo"),
-        ("po@example.gov", "Product Owner", "PO", "compass-demo"),
-        ("auditor@example.gov", "Auditor", "READONLY", "compass-demo"),
+        ("cor@example.gov", "COR Reviewer", "COR",
+         _resolve_secret("COMPASS_COR_PASSWORD", "compass-demo")),
+        ("pm@example.gov", "Program Manager", "PM",
+         _resolve_secret("COMPASS_PM_PASSWORD", "compass-demo")),
+        ("po@example.gov", "Product Owner", "PO",
+         _resolve_secret("COMPASS_PO_PASSWORD", "compass-demo")),
+        ("auditor@example.gov", "Auditor", "READONLY",
+         _resolve_secret("COMPASS_AUDITOR_PASSWORD", "compass-demo")),
     ]
     for email, name, role, pw in users:
         db.execute(
