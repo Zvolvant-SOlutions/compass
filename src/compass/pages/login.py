@@ -1,10 +1,29 @@
-"""Login page — bcrypt credentials. Azure AD button is a v2 placeholder."""
+"""Login page — bcrypt credentials. Azure AD button is a v2 placeholder.
+
+The demo-credentials list is hidden by default. Set the
+``COMPASS_SHOW_DEMO_CREDENTIALS`` env var or Streamlit secret to ``true``
+to reveal it (useful for internal walkthroughs; should be off in any
+production-facing deploy).
+"""
 
 from __future__ import annotations
+
+import os
 
 import streamlit as st
 
 from .. import auth
+
+
+def _show_demo_credentials() -> bool:
+    val = os.getenv("COMPASS_SHOW_DEMO_CREDENTIALS", "").strip().lower()
+    if not val:
+        try:
+            if "COMPASS_SHOW_DEMO_CREDENTIALS" in st.secrets:
+                val = str(st.secrets["COMPASS_SHOW_DEMO_CREDENTIALS"]).strip().lower()
+        except Exception:
+            pass
+    return val in {"1", "true", "yes", "on"}
 
 
 def render() -> None:
@@ -38,11 +57,12 @@ def render() -> None:
         # v2: trigger Azure AD OAuth here
         st.button("Sign in with Microsoft Entra", disabled=True, help="Coming in v2")
 
-    with st.expander("Demo credentials (v1)"):
-        st.markdown(
-            "All passwords are `compass-demo`. Use these to walk through the four role views:\n\n"
-            "- `cor@example.gov` — COR (acceptance decisions, threshold overrides)\n"
-            "- `pm@example.gov` — Program Manager (data entry, mitigations, risks)\n"
-            "- `po@example.gov` — Product Owner (data entry, mitigations, risks)\n"
-            "- `auditor@example.gov` — Read-only (dashboards + audit log)"
-        )
+    if _show_demo_credentials():
+        with st.expander("Demo credentials (v1)"):
+            st.markdown(
+                "All passwords are `compass-demo`. Use these to walk through the four role views:\n\n"
+                "- `cor@example.gov` — COR (acceptance decisions, threshold overrides)\n"
+                "- `pm@example.gov` — Program Manager (data entry, mitigations, risks)\n"
+                "- `po@example.gov` — Product Owner (data entry, mitigations, risks)\n"
+                "- `auditor@example.gov` — Read-only (dashboards + audit log)"
+            )
