@@ -20,10 +20,36 @@ RAG_COLORS = {"green": GREEN, "amber": AMBER, "red": RED}
 GLOBAL_CSS = f"""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Serif+Display&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0..1,-50..200');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined');
 
 html, body, [data-testid="stAppViewContainer"] * {{
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}}
+
+/* Streamlit's expanders / tabs / buttons emit Material Symbol ligatures
+   (like "arrow_right", "expand_more"). If the icon font is slow or fails
+   to load, browsers render the ligature names as raw text — landing on
+   top of the label. Pin the icon-font family explicitly to every span
+   Streamlit uses for icons so the glyph renders instead of the text. */
+[data-testid="stExpanderToggleIcon"],
+[data-testid="stIconMaterial"],
+[class*="MaterialIcon"],
+[class*="material-symbols"],
+.material-symbols-rounded,
+.material-symbols-outlined,
+span.st-emotion-cache-1u4jdkc,
+span[data-testid="stMarkdownContainer"] svg + span {{
+    font-family: 'Material Symbols Rounded', 'Material Symbols Outlined' !important;
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'liga';
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }}
 
 footer {{ display:none !important; }}
